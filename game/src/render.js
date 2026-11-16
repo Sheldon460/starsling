@@ -287,7 +287,10 @@ export function createRenderer(canvas) {
       const popup = state.popups[index];
       const t = popup.life / popup.maxLife;
       context.globalAlpha = Math.min(1, t * 1.6);
-      text(popup.text, popup.x, popup.y - (1 - t) * 34, 22, popup.color, 'center', '700');
+      // Keep popups inside the frame and clear of the HUD band at the top.
+      const x = Math.min(FIELD.width - 120, Math.max(120, popup.x));
+      const y = Math.min(FIELD.height - 24, Math.max(112, popup.y - (1 - t) * 34));
+      text(popup.text, x, y, 22, popup.color, 'center', '700');
     }
     context.globalAlpha = 1;
   }

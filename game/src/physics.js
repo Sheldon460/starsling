@@ -31,26 +31,38 @@ export function gravityAt(x, y, planets) {
 
 /**
  * The path a launch from (x, y) with (vx, vy) would take: simulate forward in 1/30 s
- * steps, stop on a planet, an asteroid or the field edge, return the sampled points.
+ * steps, stop on a planet, an asteroid or the field edge. Returns the sampled points,
+ * what stopped the flight (null when it flew the whole window), and the closest pass
+ * to each planet, so an autopilot can tell a skimming assist from a crash.
  */
-export function predictPath(x, y, vx, vy, planets, asteroids, field, steps = 90) {
+export function simulatePath(x, y, vx, vy, planets, asteroids, field, steps = 90) {
   const points = [];
+  const closest = planets.map(() => Infinity);
   let px = x;
   let py = y;
   let pvx = vx;
   let pvy = vy;
   const dt = 1 / 30;
+  let hit = null;
   for (let step = 0; step < steps; step += 1) {
     const g = gravityAt(px, py, planets);
     pvx += g.ax * dt;
     pvy += g.ay * dt;
     px += pvx * dt;
     py += pvy * dt;
-    if (px < 0 || px > field.width || py < 0 || py > field.height) break;
+    for (let index = 0; index < planets.length; index += 1) {
+      const dist = Math.hypot(px - planets[index].x, py - planets[index].y);
+      if (dist < closest[index]) closest[index] = dist;
+    }
+    if (px < 0 || px > field.width || py < 0 || py > field.height) {
+      hit = 'edge';
+      break;
+    }
     let blocked = false;
     for (let index = 0; index < planets.length; index += 1) {
       const planet = planets[index];
       if (Math.hypot(px - planet.x, py - planet.y) < planet.radius + COMET.radius) {
+        hit = 'planet';
         blocked = true;
         break;
       }
@@ -60,6 +72,7 @@ export function predictPath(x, y, vx, vy, planets, asteroids, field, steps = 90)
       const rock = asteroids[index];
       if (!rock.active) continue;
       if (Math.hypot(px - rock.x, py - rock.y) < rock.radius + COMET.radius) {
+        hit = 'rock';
         blocked = true;
         break;
       }
@@ -67,7 +80,12 @@ export function predictPath(x, y, vx, vy, planets, asteroids, field, steps = 90)
     if (blocked) break;
     if (step % 3 === 0) points.push({ x: px, y: py });
   }
-  return points;
+  return { points, hit, closest };
+}
+
+/** The sampled points of the path a launch would take (see simulatePath for the detail). */
+export function predictPath(x, y, vx, vy, planets, asteroids, field, steps = 90) {
+  return simulatePath(x, y, vx, vy, planets, asteroids, field, steps).points;
 }
 
 /** True when two circles touch. */

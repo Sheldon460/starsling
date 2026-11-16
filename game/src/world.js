@@ -119,7 +119,7 @@ export function createWorld(random) {
       if (shard.active) continue;
       for (let attempt = 0; attempt < 24; attempt += 1) {
         const x = 50 + random() * (FIELD.width - 100);
-        const y = 70 + random() * (FIELD.height - 140);
+        const y = 120 + random() * (FIELD.height - 190);
         if (!farFromPlanets(x, y, planets, SHARD.radius + 34)) continue;
         if (Math.hypot(x - comet.x, y - comet.y) < 90) continue;
         shard.active = true;

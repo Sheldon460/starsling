@@ -58,9 +58,9 @@ export const ASTEROID = {
   speedMax: 130,
   speedRamp: 1.6,
   base: 2,
-  perSeconds: 22,
+  perSeconds: 26,
   max: 8,
-  interval: 2.4,
+  interval: 3,
 };
 
 /** Score at which the palette shifts phase: dusk ember -> teal nebula -> violet deep. */
